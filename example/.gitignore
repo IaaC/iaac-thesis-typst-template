@@ -1,0 +1,12 @@
+# Licensed fonts and IAAC logos are shared privately, never commit them
+fonts/*
+!fonts/.gitkeep
+assets/logos/*
+!assets/logos/.gitkeep
+
+# Typst build output
+*.pdf
+
+# OS clutter
+.DS_Store
+Thumbs.db
