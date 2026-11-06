@@ -1,0 +1,3 @@
+[submodule "typst_skills"]
+	path = typst_skills
+	url = https://github.com/apcamargo/typst-skills.git

@@ -20,6 +20,7 @@ You don't copy this repository. You **add it to your own thesis repository as a 
 ```
 my-thesis/                    ← YOUR repository
 ├── iaac-template/            ← this repository (submodule) — don't edit
+├── AGENTS.md, CLAUDE.md      ← project instructions for AI coding agents
 ├── main.typ                  ← your details + the list of chapters
 ├── chapters/                 ← one file per chapter
 ├── frontmatter/              ← abstract, preface, acknowledgements
@@ -27,7 +28,8 @@ my-thesis/                    ← YOUR repository
 ├── references.bib            ← bibliography (BibTeX, e.g. exported from Zotero)
 ├── figures/                  ← your images
 ├── fonts/                    ← template fonts (shared privately, git-ignored)
-└── assets/logos/             ← IAAC logos (shared privately, git-ignored)
+├── assets/logos/             ← IAAC logos (shared privately, git-ignored)
+└── .claude/, .agents/        ← Typst skills for AI agents (installed by a script, git-ignored)
 ```
 
 Your writing lives in your repository. The layout lives in `iaac-template/`. When your supervisor improves the template, you pull the new version with one command, and your chapters stay untouched.
@@ -49,7 +51,7 @@ cd my-thesis
 git submodule add https://github.com/IaaC/iaac-thesis-typst-template.git iaac-template
 ```
 
-**3. Copy the starter files to the root of your repository.** This also copies the hidden `.gitignore` and `.vscode/` files.
+**3. Copy the starter files to the root of your repository.** This also copies the hidden `.gitignore` and `.vscode/`.
 
 ```sh
 cp -r iaac-template/example/. .
@@ -75,7 +77,15 @@ assets/logos/iaac-white.png
 
 The fonts are commercially licensed and the logos belong to IAAC. The included `.gitignore` keeps them out of git. **Never commit or share them publicly.**
 
-**5. Build it once, then commit:**
+**5. If you use an AI coding agent, install the Typst skills** (see [Using an AI agent](#using-an-ai-agent)):
+
+```sh
+sh iaac-template/scripts/install-skills.sh
+```
+
+On Windows, run this in Git Bash, which comes with Git for Windows.
+
+**6. Build it once, then commit:**
 
 ```sh
 typst compile --font-path fonts main.typ
@@ -100,12 +110,33 @@ typst compile --font-path fonts main.typ   # one-off build → main.pdf
 
 Commit and push your own files as usual. **Never edit files inside `iaac-template/`.** Your changes there would be lost or cause conflicts on the next update. If the template is missing something, ask your supervisor.
 
+## Using an AI agent
+
+Agents often get Typst syntax wrong because it's newer than LaTeX. This template comes with two things that fix that:
+
+- **Skills:** the [typst-skills](https://github.com/apcamargo/typst-skills) collection gives your agent a local copy of the Typst documentation to check before it writes code. `typst-author` covers Typst in general, and `touying-author` covers slides, which is useful for your thesis defence.
+- **Project instructions:** `AGENTS.md` (and `CLAUDE.md`, which points to it) tells your agent how this project works, such as never editing `iaac-template/` and not overriding the template's design.
+
+The install script from setup step 5 copies the skills to these folders in your repository:
+
+| Agent | Folder |
+|---|---|
+| Claude Code | `.claude/skills/` |
+| Agents that read the shared location | `.agents/skills/` |
+
+If your agent looks somewhere else, check its documentation and copy the `typst-author` and `touying-author` folders from `.agents/skills/` to the folder it uses.
+
+To check that it worked, restart your agent and ask: "Which Typst skills do you have?" Then ask it to add a chapter, and check that it compiles.
+
+The skills are git-ignored, so run the install script again after you clone your repository on another computer or update the template.
+
 ## Updating the template
 
 When your supervisor announces a new version, run:
 
 ```sh
 git submodule update --remote iaac-template
+sh iaac-template/scripts/install-skills.sh    # only if you use an AI agent
 git add iaac-template
 git commit -m "Update thesis template"
 ```
@@ -117,6 +148,7 @@ cd iaac-template
 git fetch --tags
 git checkout v1.1.0
 cd ..
+sh iaac-template/scripts/install-skills.sh    # only if you use an AI agent
 git add iaac-template
 git commit -m "Use thesis template v1.1.0"
 ```
@@ -131,7 +163,7 @@ Clone with `--recursive`, otherwise the `iaac-template/` folder stays empty:
 git clone --recursive https://github.com/<your-user>/my-thesis.git
 ```
 
-If you already cloned without it, run `git submodule update --init` instead. You also need to copy the fonts and logos again, because they're not in git.
+If you already cloned without it, run `git submodule update --init` instead. You also need to copy the fonts and logos again and re-run the skills install script, because none of these are in git.
 
 ## The document structure
 
@@ -217,6 +249,7 @@ Start every path with `/`, which means the root of your repository. For example,
 | Text appears in a default font | Add the fonts and compile with `--font-path fonts` |
 | "pass images as image(...)" | Write `src: image("/figures/x.jpg")`, not `src: "figures/x.jpg"` |
 | Git says `iaac-template` has "modified content" | You edited a template file. Undo it with `git -C iaac-template checkout .` |
+| Your agent doesn't know the Typst skills | Run `sh iaac-template/scripts/install-skills.sh` from your repository root, then restart the agent |
 
 ---
 
@@ -228,7 +261,10 @@ This repository contains:
 .
 ├── lib.typ                   ← the template: all styles, layouts and helpers
 ├── example/                  ← starter files students copy into their repo root
-├── scripts/build-example.sh  ← builds example/ the way a student repo sees it
+├── typst_skills/             ← Typst agent skills (submodule, third-party)
+├── scripts/
+│   ├── build-example.sh      ← builds example/ the way a student repo sees it
+│   └── install-skills.sh     ← students run this to install the skills
 ├── README.md
 └── LICENSE
 ```
@@ -250,7 +286,15 @@ scripts/build-example.sh watch    # rebuild on every change
 
 Use semantic versions. Increase the major version (`v2.0.0`) if a change could break an existing thesis, for example a renamed parameter or helper.
 
-**Changes only reach students through `lib.typ`.** Students copied `example/` once at setup, so later edits to it only affect new students. Keep `lib.typ` backward-compatible: add new options with defaults instead of renaming or removing existing ones.
+**Updating the skills:** the template pins a specific commit of `typst_skills`, so students get a new version only when you release one:
+
+```sh
+git submodule update --remote typst_skills
+git add typst_skills
+git commit -m "Update Typst skills"
+```
+
+**Changes only reach students through `lib.typ` and the skills.** Students copied `example/`, including `AGENTS.md`, once at setup, so later edits to it only affect new students. Keep `lib.typ` backward-compatible: add new options with defaults instead of renaming or removing existing ones.
 
 ## Design reference
 
@@ -266,4 +310,4 @@ Use semantic versions. Increase the major version (`v2.0.0`) if a change could b
 
 ## License
 
-The template code is released under the [MIT License](LICENSE). The fonts and the IAAC logos are not covered by this license and are not distributed here.
+The template code is released under the [MIT License](LICENSE). The fonts and the IAAC logos are not covered by this license and are not distributed here. The Typst skills are a separate third-party project, linked as a submodule, and are not covered by this license either.

@@ -4,6 +4,10 @@ fonts/*
 assets/logos/*
 !assets/logos/.gitkeep
 
+# Agent skills, installed by iaac-template/scripts/install-skills.sh
+.claude/skills/
+.agents/skills/
+
 # Typst build output
 *.pdf
 
